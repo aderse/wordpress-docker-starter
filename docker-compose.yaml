@@ -1,0 +1,53 @@
+version: "3"
+services:
+  wpdb:
+    platform: linux/x86_64
+    image: mysql:5.7
+    restart: "no"
+    volumes:
+    - wpdb_data:/var/lib/mysql
+    ports:
+      - 33061:3306
+    command: --max-allowed-packet=32505856
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+    networks:
+    - wp
+
+  wp:
+    depends_on:
+      - wpdb
+    image: wordpress
+    restart: "no"
+    volumes: ["./:/var/www/html"]
+    environment:
+      WORDPRESS_DB_HOST: wpdb:33061
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+    ports:
+      - 80:80
+      - 443:443
+    networks:
+      - wp
+
+  wppma:
+    depends_on:
+    - wpdb
+    image: phpmyadmin/phpmyadmin
+    restart: "no"
+    ports:
+    - 8080:80
+    environment:
+      PMA_HOST: wpdb
+      MYSQL_ROOT_PASSWORD: password
+    networks:
+    - wp
+
+networks:
+  wp:
+
+volumes:
+  wpdb_data:
